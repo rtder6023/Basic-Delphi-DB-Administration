@@ -1,0 +1,20 @@
+CREATE DATABASE IF NOT EXISTS conbetra;
+USE conbetra;
+DROP TABLE auth;
+DROP TABLE posting;
+
+
+CREATE TABLE auth (
+	empid INT NOT NULL AUTO_INCREMENT PRIMARY KEY, 
+    loginId VARCHAR(30) NOT NULL UNIQUE,
+    display_name VARCHAR(20) NOT NULL,
+    pw VARCHAR(20) NOT NULL
+);
+
+CREATE TABLE posting (
+	postId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    postName VARCHAR(30) NOT NULL,
+    postBio VARCHAR(600),
+    uploader INT NOT NULL,
+    FOREIGN KEY (uploader) REFERENCES auth(empid)
+    );
