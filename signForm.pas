@@ -26,6 +26,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure signBtnClick(Sender: TObject);
     procedure checkIdBtnClick(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     { Private declarations }
   public
@@ -36,6 +37,7 @@ var
   Form2: TForm2;
   cnt: integer;
   t_cnt: Boolean;
+  warning: integer;
 
 implementation
 
@@ -50,6 +52,19 @@ begin
   FDConnection1.Params.Add('Database=conbetra');
   FDConnection1.Params.Add('User_Name=conbetra_root');
   FDConnection1.Params.Add('Password=1234');
+end;
+
+procedure TForm2.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if Key = VK_ESCAPE then
+  begin
+    returnBtn.Click;
+  end;
+  if Key = VK_RETURN then
+  begin
+    signBtn.Click;
+  end;
 end;
 
 procedure TForm2.checkIdBtnClick(Sender: TObject);
@@ -69,7 +84,7 @@ begin
     t_cnt := false;
     Exit;
   end;
-  
+
   FDQuery2.SQL.Text := 'SELECT TRIM(loginId) FROM auth WHERE loginId = :loginId';
   FDQuery2.ParamByName('loginId').AsString := edtID.Text;
   FDQuery2.Open;
@@ -78,12 +93,12 @@ begin
   begin
     ShowMessage('중복되는 아이디 입니다.');
     edtID.SetFocus;
-    Inc(cnt);
+    edtID.Clear;
     t_cnt := false;
     Exit;
   end
-  else 
-  begin 
+  else
+  begin
     ShowMessage('사용 가능한 아이디입니다.');
     edtID.SetFocus;
     Inc(cnt);
@@ -94,7 +109,13 @@ end;
 
 
 procedure TForm2.signBtnClick(Sender: TObject);
+//var
+//  warning: integer;
 begin
+  FDQuery2.SQL.Text := 'SELECT TRIM(loginId) FROM auth WHERE loginId = :loginId';
+  FDQuery2.ParamByName('loginId').AsString := edtID.Text;
+  FDQuery2.Open;
+
   if edtID.Text = '' then
   begin
     edtID.SetFocus;
@@ -102,7 +123,7 @@ begin
     Self.ModalResult := mrNone;
     Exit;
   end;
-  
+
   if edtName.Text = '' then
   begin
     edtName.SetFocus;
@@ -121,17 +142,34 @@ begin
 
   if cnt < 1 then
   begin
-    ShowMessage('중복검사를 먼저 하십시오');
+    ShowMessage('중복검사를 하십시오');
+    checkIdBtn.SetFocus;
     Self.ModalResult := mrNone;
     Exit;
   end;
 
   if t_cnt = false then
   begin
-    ShowMessage('이 이름은 이미 존재하는 이름입니다.');
+    ShowMessage('이 아이디는 중복됩니다.');
+    edtId.Clear;
+    edtId.SetFocus;
     Self.ModalResult := mrNone;
     Exit;
   end;
+
+  if edtId.Text = FDQuery2.ParamByName('loginId').AsWideString then
+  begin
+    ShowMessage('정상적인 방법으로 접근 하십시오.');
+    t_cnt := false;
+    cnt := 0;
+    Inc(warning);
+    edtId.Clear;
+    edtId.SetFocus;
+    Self.ModalResult := mrNone;
+    Exit;
+  end;
+
+
   
   FDQuery1.SQL.Text := 'INSERT INTO auth(loginId, display_name, pw) VALUES(:loginId, :display_name, :pw)';
   FDQuery1.ParamByName('loginId').AsWideString := edtID.Text;
